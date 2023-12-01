@@ -6,6 +6,8 @@ import java.util.Random;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import java.security.NoSuchAlgorithmException;  
+import java.security.MessageDigest;  
 
 import com.rahul.constants.Constants;
 import com.rahul.dto.LoginRequest;
@@ -25,6 +27,7 @@ public class UserServiceImpl implements UserService {
 
 	@Autowired
 	private EmailService emailService;
+	
 
 	@Override
 	public RegistrationResponse register(RegistrationRequest registrationRequest) {
@@ -34,8 +37,41 @@ public class UserServiceImpl implements UserService {
 			//throw new RuntimeException("User with given email id already registered");
 			throw new LoginBusinessException(Constants.USER_ALREADY_REGISTERED,LocalDateTime.now());
 		}
+		
+		String password =registrationRequest.getPassword() ;  
+        String encryptedpassword = null;  
+        try   
+        {  
+            /* MessageDigest instance for MD5. */  
+            MessageDigest m = MessageDigest.getInstance("MD5");  
+              
+            /* Add plain-text password bytes to digest using MD5 update() method. */  
+            m.update(password.getBytes());  
+              
+            /* Convert the hash value into bytes */   
+            byte[] bytes = m.digest();  
+              
+            /* The bytes array has bytes in decimal form. Converting it into hexadecimal format. */  
+            StringBuilder s = new StringBuilder();  
+            for(int i=0; i< bytes.length ;i++)  
+            {  
+                s.append(Integer.toString((bytes[i] & 0xff) + 0x100, 16).substring(1));  
+            }  
+              
+            /* Complete hashed password in hexadecimal format */  
+            encryptedpassword = s.toString();  
+        }   
+        catch (NoSuchAlgorithmException e)   
+        {  
+            e.printStackTrace();  
+        }  
+        /* Display the unencrypted and encrypted passwords. */  
+        System.out.println("Plain-text password: " + password);  
+        System.out.println("Encrypted password using MD5: " + encryptedpassword);  
+		
 		Users users = Users.builder().email(registrationRequest.getEmail()).username(registrationRequest.getUsername())
-				.password(registrationRequest.getPassword()).build();
+				.password(encryptedpassword).build();
+		
 		String otp = generateOtp();
 		users.setOtp(otp);
 		sendVerificationEmail(users.getEmail(), otp);
@@ -100,5 +136,7 @@ public class UserServiceImpl implements UserService {
 			throw new LoginBusinessException(Constants.USER_NOT_VERIFIED,LocalDateTime.now());
 		}
 	}
-
 }
+	
+
+
