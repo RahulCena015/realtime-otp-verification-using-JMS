@@ -15,6 +15,8 @@ import com.rahul.dto.RegistrationRequest;
 import com.rahul.dto.RegistrationResponse;
 import com.rahul.service.UserService;
 
+import jakarta.validation.Valid;
+
 @RestController
 @RequestMapping("/api/v1/user")
 public class UserController {
@@ -23,7 +25,7 @@ public class UserController {
 	private UserService userService;
 	
 	@PostMapping("/register")
-	public ResponseEntity<RegistrationResponse> registerUser(@RequestBody RegistrationRequest registrationRequest){
+	public ResponseEntity<RegistrationResponse> registerUser(@RequestBody @Valid RegistrationRequest registrationRequest){
 		RegistrationResponse registrationResponse = userService.register(registrationRequest);
 		return new ResponseEntity<>( registrationResponse,HttpStatus.CREATED);
 	}
